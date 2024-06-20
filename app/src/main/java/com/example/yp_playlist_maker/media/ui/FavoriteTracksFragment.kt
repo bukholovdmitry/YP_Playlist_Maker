@@ -10,9 +10,7 @@ import com.example.yp_playlist_maker.databinding.FragmentFavoriteTracksBinding
 import com.example.yp_playlist_maker.media.viewmodel.FavoriteTracksViewModel
 import com.example.yp_playlist_maker.search.domain.Track
 import com.example.yp_playlist_maker.search.ui.TrackAdapter
-import com.google.gson.Gson
 import org.koin.android.ext.android.inject
-import org.koin.java.KoinJavaComponent
 
 class FavoriteTracksFragment : Fragment() {
     private lateinit var trackAdapter: TrackAdapter
@@ -26,8 +24,8 @@ class FavoriteTracksFragment : Fragment() {
     }
 
     private fun render(result: Result<List<Track>>) {
-        if(result.isSuccess){
-            if(result.getOrNull()!!.isEmpty()){
+        if (result.isSuccess) {
+            if (result.getOrNull()!!.isEmpty()) {
                 with(trackAdapter) {
                     tracks.clear()
                     notifyDataSetChanged()
@@ -35,8 +33,7 @@ class FavoriteTracksFragment : Fragment() {
                 binding.ivSadFace.visibility = View.VISIBLE
                 binding.tvPlaylistsNotCreated.visibility = View.VISIBLE
 
-            }
-            else{
+            } else {
                 binding.ivSadFace.visibility = View.GONE
                 binding.tvPlaylistsNotCreated.visibility = View.GONE
                 with(trackAdapter) {
@@ -51,18 +48,17 @@ class FavoriteTracksFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentFavoriteTracksBinding.inflate(layoutInflater)
 
         trackAdapter = TrackAdapter {
-            val gson: Gson by KoinJavaComponent.inject(Gson::class.java)
-            val direction = MediaFragmentDirections.actionMediaFragmentToAudioPlayerFragment(gson.toJson(it))
+            val direction = MediaFragmentDirections.actionMediaFragmentToAudioPlayerFragment(it)
             findNavController().navigate(directions = direction)
         }
         trackAdapter.tracks = ArrayList()
         binding.rvLikedTracks.adapter = trackAdapter
 
-        viewModel.observeState().observe(viewLifecycleOwner){
+        viewModel.observeState().observe(viewLifecycleOwner) {
             render(it)
         }
         viewModel.fillData()

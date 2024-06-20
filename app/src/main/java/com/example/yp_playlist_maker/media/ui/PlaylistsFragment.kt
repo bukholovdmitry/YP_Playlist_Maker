@@ -11,45 +11,51 @@ import com.example.yp_playlist_maker.R
 import com.example.yp_playlist_maker.databinding.FragmentPlaylistsBinding
 import com.example.yp_playlist_maker.media.domain.db.Playlist
 import com.example.yp_playlist_maker.media.viewmodel.PlaylistsViewModel
-import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 class PlaylistsFragment : Fragment() {
     private lateinit var playlistAdapter: PlaylistAdapter
-    private val viewModel: PlaylistsViewModel by inject<PlaylistsViewModel>()
+    private val playlistsViewModel: PlaylistsViewModel by viewModel<PlaylistsViewModel>()
     private lateinit var binding: FragmentPlaylistsBinding
 
     private fun render(result: Result<List<Playlist>>) {
         if (result.isSuccess) {
-            if(result.getOrNull()!!.isEmpty()){
+            val listOfPlaylists: List<Playlist>? = result.getOrNull()
+
+            if (listOfPlaylists.isNullOrEmpty()) {
                 with(playlistAdapter) {
                     playlists.clear()
                     notifyDataSetChanged()
                 }
                 binding.ivSadFace.visibility = View.VISIBLE
                 binding.tvPlaylistsNotCreated.visibility = View.VISIBLE
-
-            }
-            else{
+            } else {
                 binding.ivSadFace.visibility = View.GONE
                 binding.tvPlaylistsNotCreated.visibility = View.GONE
                 with(playlistAdapter) {
                     playlists.clear()
-                    playlists.addAll(result.getOrNull()!!)
+                    playlists.addAll(listOfPlaylists)
                     notifyDataSetChanged()
+
+                    if (result.getOrNull() != null) {
+                        playlists.clear()
+                        playlists.addAll(listOfPlaylists)
+                        notifyDataSetChanged()
+
+                    }
                 }
             }
         }
     }
 
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentPlaylistsBinding.inflate(inflater, container, false)
 
-        viewModel.observeState().observe(viewLifecycleOwner){
+        playlistsViewModel.observeState().observe(viewLifecycleOwner) {
             render(it)
         }
 
@@ -57,10 +63,14 @@ class PlaylistsFragment : Fragment() {
             Log.d("PlaylistFragment", "Opening PlaylistCreateFragment")
             findNavController().navigate(R.id.playlistCreateFragment)
         }
-        playlistAdapter = PlaylistAdapter()
+        playlistAdapter = PlaylistAdapter {
+            val direction = MediaFragmentDirections.actionMediaFragmentToPlaylistInfoFragment(it)
+            findNavController().navigate(directions = direction)
+        }
+
         playlistAdapter.playlists = ArrayList()
         binding.rvPlaylists.adapter = playlistAdapter
-        viewModel.fillData()
+        playlistsViewModel.fillData()
 
         return binding.root
     }

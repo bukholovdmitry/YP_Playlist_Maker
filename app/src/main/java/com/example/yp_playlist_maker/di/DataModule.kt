@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
-import androidx.lifecycle.MutableLiveData
 import androidx.room.Room
 import com.example.yp_playlist_maker.media.data.PlaylistRepositoryImpl
 import com.example.yp_playlist_maker.media.data.TracksInPlaylistRepositoryImpl
@@ -89,8 +88,6 @@ val dataModule = module {
         Handler(Looper.getMainLooper())
     }
 
-    factory { MutableLiveData<Any>() }
-
     single {
         Room.databaseBuilder(androidContext(), AppDatabase::class.java, "database.db")
             .fallbackToDestructiveMigration()
@@ -105,11 +102,11 @@ val dataModule = module {
 
     factory { PlaylistDbConvertor() }
 
-    single<PlaylistRepository>{
-        PlaylistRepositoryImpl(get(), get())
+    single<PlaylistRepository> {
+        PlaylistRepositoryImpl(get(), get(), get())
     }
 
     single<TracksInPlaylistRepository> {
-        TracksInPlaylistRepositoryImpl(get())
+        TracksInPlaylistRepositoryImpl(get(), get())
     }
 }

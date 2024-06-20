@@ -13,18 +13,20 @@ import kotlinx.coroutines.flow.flow
 import java.util.Calendar
 
 const val CONNECTION_SUCCESS = 200
-class TracksRepositoryImpl(private val networkClient: NetworkClient): TracksRepository {
+
+class TracksRepositoryImpl(private val networkClient: NetworkClient) : TracksRepository {
     override fun searchTracks(expression: String): Flow<Result<List<Track>>> = flow {
         val response = networkClient.doRequest(TracksSearchRequest(expression))
-        when(response.resultCode){
+        when (response.resultCode) {
             CONNECTION_SUCCESS -> {
 
-                with(response as TracksSearchResponse){
+                with(response as TracksSearchResponse) {
                     val data = results.map {
                         val calendar = Calendar.getInstance()
-                        calendar.time =it.releaseDate
+                        calendar.time = it.releaseDate
 
-                        Track(it.trackId,
+                        Track(
+                            it.trackId,
                             it.trackName,
                             it.artistName,
                             it.trackTime,
@@ -34,11 +36,13 @@ class TracksRepositoryImpl(private val networkClient: NetworkClient): TracksRepo
                             it.country,
                             calendar.get(Calendar.YEAR),
                             it.previewUrl,
-                            false)
+                            false
+                        )
                     }
                     emit(Result.success(ArrayList(data)))
                 }
             }
+
             else -> {
                 emit(Result.failure(exception = Throwable()))
             }

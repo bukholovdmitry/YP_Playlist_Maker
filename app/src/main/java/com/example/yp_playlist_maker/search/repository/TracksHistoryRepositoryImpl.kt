@@ -13,16 +13,16 @@ const val THEME_TEXT = "key_for_theme"
 const val TRACK_KEY = "TRACK_KEY"
 const val MAX_SAVED_TRACKS_HISTORY_SIZE = 10
 const val SAVED_TRACKS_PREFERENCES = "yp_playlist_saved_tracks"
-class TracksHistoryRepositoryImpl(val gson: Gson, val context: Context): TracksHistoryRepository {
+
+class TracksHistoryRepositoryImpl(val gson: Gson, val context: Context) : TracksHistoryRepository {
 
     private val sharedPreferences = context.getSharedPreferences(
         SAVED_TRACKS_PREFERENCES,
         AppCompatActivity.MODE_PRIVATE
     )
-    override fun clearSavedTracks(){
-        sharedPreferences.edit().
-        clear().
-        apply()
+
+    override fun clearSavedTracks() {
+        sharedPreferences.edit().clear().apply()
     }
 
     override fun read(): List<Track> {
@@ -39,13 +39,15 @@ class TracksHistoryRepositoryImpl(val gson: Gson, val context: Context): TracksH
         Log.d("SearchHistory.write", "Read current saving history")
         val savedTracksArray = ArrayList<Track>()
         savedTracksArray.addAll(this.read())
-        if(savedTracksArray.contains(track)){
-            Log.d("SearchHistory.write", "Remove repetitions")
-            savedTracksArray.remove(track)
+        Log.d("SearchHistory.write", "Remove repetitions")
+        savedTracksArray.forEach { forEachTrack: Track ->
+            if (forEachTrack.trackId == track.trackId) savedTracksArray.remove(
+                forEachTrack
+            )
         }
 
         //Если количество сохраняемых треков ВДРУГ изменится, то будут отображены только 10 последних добавленных треков
-        while (savedTracksArray.size>= MAX_SAVED_TRACKS_HISTORY_SIZE){
+        while (savedTracksArray.size >= MAX_SAVED_TRACKS_HISTORY_SIZE) {
             Log.d("SearchHistory.write", "Remove items exceeding size")
             savedTracksArray.removeFirst()
         }

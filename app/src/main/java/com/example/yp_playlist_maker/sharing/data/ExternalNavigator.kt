@@ -7,7 +7,7 @@ import android.util.Log
 import com.example.yp_playlist_maker.R
 
 class ExternalNavigator(val context: Context) {
-    fun shareLink(link: String){
+    fun shareLink(link: String) {
         val shareIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, link)
@@ -23,7 +23,7 @@ class ExternalNavigator(val context: Context) {
         )
     }
 
-    fun openLink(link: String){
+    fun openLink(link: String) {
         val shareLinkIntent = Intent(Intent.ACTION_VIEW, Uri.parse(link)).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
@@ -31,7 +31,7 @@ class ExternalNavigator(val context: Context) {
         context.startActivity(shareLinkIntent)
     }
 
-    fun openEmail(emailData: EmailData){
+    fun openEmail(emailData: EmailData) {
         val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
             data = Uri.parse(emailData.mailTo)
             putExtra(Intent.EXTRA_EMAIL, emailData.email)
@@ -40,6 +40,6 @@ class ExternalNavigator(val context: Context) {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         Log.d("ExternalNavigaror", "Open emailIntent")
-       context.startActivity(emailIntent)
+        context.startActivity(emailIntent)
     }
 }

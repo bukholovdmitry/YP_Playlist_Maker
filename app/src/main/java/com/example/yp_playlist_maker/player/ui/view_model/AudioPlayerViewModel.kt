@@ -16,7 +16,6 @@ import com.example.yp_playlist_maker.player.data.PlaylistsState
 import com.example.yp_playlist_maker.player.domain.PlayerInteractor
 import com.example.yp_playlist_maker.player.domain.db.FavoriteTracksInteractor
 import com.example.yp_playlist_maker.search.domain.Track
-import com.example.yp_playlist_maker.search.domain.TracksInteractor
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -24,20 +23,21 @@ import org.koin.java.KoinJavaComponent.inject
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class AudioPlayerViewModel( private val tracksInteractor: TracksInteractor,
-                            private val playerInteractor: PlayerInteractor,
-                            private val favoriteTracksInteractor: FavoriteTracksInteractor,
-                            private val playlistInteractor: PlaylistInteractor,
-                            private val tracksInPlaylistInteractor: TracksInPlaylistInteractor
-): ViewModel() {
+class AudioPlayerViewModel(
+    private val playerInteractor: PlayerInteractor,
+    private val favoriteTracksInteractor: FavoriteTracksInteractor,
+    private val playlistInteractor: PlaylistInteractor,
+    private val tracksInPlaylistInteractor: TracksInPlaylistInteractor
+) : ViewModel() {
     companion object {
         const val SHOW_TIME_DEBOUNCE_DELAY_MILLIS = 300L
     }
+
     private val mediaPlayer: MediaPlayer by inject(MediaPlayer::class.java)
-    private val stateLiveData: MutableLiveData<PlayerState> by inject(MutableLiveData::class.java)
-    private val playlistLiveData: MutableLiveData<PlaylistsState> by inject(MutableLiveData::class.java)
+    private val stateLiveData = MutableLiveData<PlayerState>()
+    private val playlistLiveData = MutableLiveData<PlaylistsState>()
     private var timerJob: Job? = null
-    private var track: Track? = null
+    private lateinit var currentTrack: Track
     private val context: Context by inject(Context::class.java)
     private var alreadyPrepared = true
 
@@ -45,23 +45,22 @@ class AudioPlayerViewModel( private val tracksInteractor: TracksInteractor,
 
     fun observePlaylistState(): LiveData<PlaylistsState> = playlistLiveData
 
-    fun loadTrack(stringExtra: String){
-        track = tracksInteractor.loadTrackData(stringExtra)
-
+    fun loadTrack(track: Track) {
+        currentTrack = track
         viewModelScope.launch {
             favoriteTracksInteractor
                 .likedTracks()
-                .collect{tracks ->
+                .collect { tracks ->
                     tracks.map {
-                        if(track!!.trackId == it.trackId){
-                            track!!.isFavorite = it.isFavorite
+                        if (track.trackId == it.trackId) {
+                            track.isFavorite = it.isFavorite
                         }
                     }
                 }
         }
-        if(alreadyPrepared) {
+        if (alreadyPrepared) {
             with(mediaPlayer) {
-                mediaPlayer.setDataSource(track!!.previewUrl)
+                mediaPlayer.setDataSource(track.previewUrl)
                 mediaPlayer.prepareAsync()
                 setOnPreparedListener {
                     renderState(PlayerState.Prepared)
@@ -71,33 +70,33 @@ class AudioPlayerViewModel( private val tracksInteractor: TracksInteractor,
                     renderState(PlayerState.Complete(playerInteractor.getStartPosition()))
                 }
                 alreadyPrepared = false
-                renderState(PlayerState.StateDefault(track!!))
+                renderState(PlayerState.StateDefault(track))
             }
-        }
-        else{
-            renderState(PlayerState.Resume(track!!, SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition)))
+        } else {
+            renderState(
+                PlayerState.Resume(
+                    track,
+                    SimpleDateFormat(
+                        "mm:ss",
+                        Locale.getDefault()
+                    ).format(mediaPlayer.currentPosition)
+                )
+            )
         }
     }
 
-
-
-    fun release(){
-        mediaPlayer.release()
-    }
-
-    fun playbackControl(){
-        if(mediaPlayer.isPlaying){
+    fun playbackControl() {
+        if (mediaPlayer.isPlaying) {
             mediaPlayer.pause()
             renderState(PlayerState.Pause)
-        }
-        else{
+        } else {
             mediaPlayer.start()
             createUpdatePositionTask()
         }
     }
 
-    fun pausePlayer(){
-        if(mediaPlayer.isPlaying){
+    fun pausePlayer() {
+        if (mediaPlayer.isPlaying) {
             mediaPlayer.pause()
             timerJob?.cancel()
             renderState(PlayerState.Pause)
@@ -112,59 +111,97 @@ class AudioPlayerViewModel( private val tracksInteractor: TracksInteractor,
         playlistLiveData.postValue(playlistState)
     }
 
-    private fun createUpdatePositionTask(){
-        timerJob = viewModelScope.launch{
-            Log.d("Position task", "Load current position: %s".format(SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition)))
-            while(mediaPlayer.isPlaying){
-                renderState(PlayerState.StatePlaying(SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition)))
+    private fun createUpdatePositionTask() {
+        timerJob = viewModelScope.launch {
+            Log.d(
+                "Position task",
+                "Load current position: %s".format(
+                    SimpleDateFormat(
+                        "mm:ss",
+                        Locale.getDefault()
+                    ).format(mediaPlayer.currentPosition)
+                )
+            )
+            while (mediaPlayer.isPlaying) {
+                renderState(
+                    PlayerState.StatePlaying(
+                        SimpleDateFormat(
+                            "mm:ss",
+                            Locale.getDefault()
+                        ).format(mediaPlayer.currentPosition)
+                    )
+                )
                 delay(SHOW_TIME_DEBOUNCE_DELAY_MILLIS)
             }
         }
     }
 
-    fun likeTrack(){
+    fun likeTrack() {
         viewModelScope.launch {
-            if(track!!.isFavorite){
+            if (currentTrack.isFavorite) {
                 Log.d("Favorite track", "delete from favorite")
-                favoriteTracksInteractor.unlikeTrack(track!!)
-            }
-            else{
+                favoriteTracksInteractor.unlikeTrack(currentTrack)
+            } else {
                 Log.d("Favorite track", "add to favorite")
-                favoriteTracksInteractor.likeTrack(track!!)
+                favoriteTracksInteractor.likeTrack(currentTrack)
             }
-            track!!.isFavorite = !track!!.isFavorite
-            renderState(PlayerState.StateDefault(track!!))
+            currentTrack.isFavorite = !currentTrack.isFavorite
+            renderState(PlayerState.StateDefault(currentTrack))
         }
     }
 
-    fun addToPlaylist(playlist: Playlist){
+    fun addToPlaylist(playlist: Playlist) {
         viewModelScope.launch {
-            tracksInPlaylistInteractor.getTrackIdsInPlaylist(playlist.playlistId).collect{ listTrackIds ->
-                if(listTrackIds.contains(track!!.trackId)){
-                    Log.d("AudioPlayerViewModel", "Track $track already in playlist: $playlist")
-                    renderPlaylists(PlaylistsState.StateMakeMessage(context.getString(R.string.track_already_added_to_playlist).format(playlist.playlistName)))
+            tracksInPlaylistInteractor.getTrackIdsInPlaylist(playlist.playlistId)
+                .collect { listTrackIds ->
+                    if (listTrackIds.isNotEmpty() && listTrackIds.contains(currentTrack.trackId)) {
+                        Log.d(
+                            "AudioPlayerViewModel",
+                            "Track $currentTrack already in playlist: $playlist"
+                        )
+                        renderPlaylists(
+                            PlaylistsState.StateMakeMessage(
+                                context.getString(R.string.track_already_added_to_playlist)
+                                    .format(playlist.playlistName)
+                            )
+                        )
+                    } else {
+                        Log.d(
+                            "AudioPlayerViewModel",
+                            "addToPlaylist $currentTrack in playlist: $playlist"
+                        )
+                        tracksInPlaylistInteractor.insertTrackInPlaylist(
+                            playlist.playlistId,
+                            currentTrack
+                        )
+                        renderPlaylists(
+                            PlaylistsState.StateMakeMessage(
+                                context.getString(R.string.added_to_playlist)
+                                    .format(playlist.playlistName)
+                            )
+                        )
+                        playlistInteractor
+                            .playlists()
+                            .collect { playlists ->
+                                renderPlaylists(PlaylistsState.StateData(playlists))
+                            }
+                    }
                 }
-                else{
-                    Log.d("AudioPlayerViewModel", "addToPlaylist $track in playlist: $playlist")
-                    tracksInPlaylistInteractor.insertTrackInPlaylist(playlist.playlistId, track!!.trackId)
-                    renderPlaylists(PlaylistsState.StateMakeMessage(context.getString(R.string.added_to_playlist).format(playlist.playlistName)))
-                    playlistInteractor
-                        .playlists()
-                        .collect{playlists->
-                            renderPlaylists(PlaylistsState.StateData(playlists))
-                        }
-                }
-            }
         }
     }
 
-    fun showPlaylists(){
+    fun showPlaylists() {
         viewModelScope.launch {
             playlistInteractor
                 .playlists()
-                .collect{playlists->
+                .collect { playlists ->
                     renderPlaylists(PlaylistsState.StateData(playlists))
                 }
         }
+    }
+
+    override fun onCleared() {
+        mediaPlayer.release()
+        super.onCleared()
     }
 }

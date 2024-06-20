@@ -24,15 +24,15 @@ val domainModule = module {
         TracksInteractorImpl(get())
     }
 
-    factory<TracksHistoryInteractor>{
+    factory<TracksHistoryInteractor> {
         TracksHistoryInteractorImpl(get())
     }
 
-    factory<SettingsInteractor>{
+    factory<SettingsInteractor> {
         SettingsInteractorImpl(get())
     }
 
-    factory<SharingInteractor>{
+    factory<SharingInteractor> {
         SharingInteractorImpl(get())
     }
 
@@ -40,11 +40,11 @@ val domainModule = module {
         PlayerInteractorImpl(get())
     }
 
-    factory<FavoriteTracksInteractor>{
+    factory<FavoriteTracksInteractor> {
         FavoriteTracksInteractorImpl(get())
     }
 
-    factory<PlaylistInteractor>{
+    factory<PlaylistInteractor> {
         PlaylistInteractorImpl(get())
     }
 

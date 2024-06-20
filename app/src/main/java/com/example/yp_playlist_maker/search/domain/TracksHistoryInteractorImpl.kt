@@ -1,6 +1,6 @@
 package com.example.yp_playlist_maker.search.domain
 
-class TracksHistoryInteractorImpl(private val repository: TracksHistoryRepository):
+class TracksHistoryInteractorImpl(private val repository: TracksHistoryRepository) :
     TracksHistoryInteractor {
     override fun clearSavedTracks() {
         repository.clearSavedTracks()

@@ -40,4 +40,20 @@
         <item quantity="few">%d tracks</item>
         <item quantity="other">%d tracks</item>
     </plurals>
+    <plurals name="count_of_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="few">%d minutes</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+    <string name="want_delete">Do you want delete track?</string>
+    <string name="yes">YES</string>
+    <string name="no">NO</string>
+    <string name="playlist_share_message">This playlist does not have a list of sharable tracks.</string>
+    <string name="share">Share</string>
+    <string name="delete_playlist">Delete playlist</string>
+    <string name="edit_playlist">Remove playlist</string>
+    <string name="want_delete_playlist">Do you want delete playlist «%s»?</string>
+    <string name="edit">Edit</string>
+    <string name="save">Save</string>
+    <string name="playlist_empty">Playlist is empty</string>
 </resources>

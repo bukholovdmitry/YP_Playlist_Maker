@@ -5,26 +5,24 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.yp_playlist_maker.media.domain.db.Playlist
-import com.example.yp_playlist_maker.media.domain.db.PlaylistRepository
+import com.example.yp_playlist_maker.media.domain.db.PlaylistInteractor
 import kotlinx.coroutines.launch
-import org.koin.java.KoinJavaComponent
 
-class PlaylistsViewModel(private var playlistRepository: PlaylistRepository): ViewModel() {
-    private val stateLiveData: MutableLiveData<Result<List<Playlist>>> by KoinJavaComponent.inject(
-        MutableLiveData::class.java
-    )
-
+class PlaylistsViewModel(
+    private val playlistInteractor: PlaylistInteractor
+) : ViewModel() {
+    private val stateLiveData = MutableLiveData<Result<List<Playlist>>>()
     fun observeState(): LiveData<Result<List<Playlist>>> = stateLiveData
 
     private fun renderState(state: Result<List<Playlist>>) {
         stateLiveData.postValue(state)
     }
 
-    fun fillData(){
+    fun fillData() {
         viewModelScope.launch {
-            playlistRepository
+            playlistInteractor
                 .playlists()
-                .collect{playlists ->
+                .collect { playlists ->
                     renderState(Result.success(playlists))
                 }
         }

@@ -11,7 +11,7 @@ import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
-class MyApp: Application() {
+class MyApp : Application() {
     private val settingsInteractor: SettingsInteractor by inject()
     override fun onCreate() {
         super.onCreate()
@@ -21,9 +21,12 @@ class MyApp: Application() {
             modules(dataModule, domainModule, viewModelModule)
         }
 
-        val themeIsDark =  settingsInteractor.retrieveIsDarkTheme()
+        val themeIsDark = settingsInteractor.retrieveIsDarkTheme()
 
-        if (themeIsDark) { AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES) }
-        else { AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO) }
+        if (themeIsDark) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        }
     }
 }

@@ -11,7 +11,7 @@ import com.example.yp_playlist_maker.databinding.FragmentSettingsBinding
 import com.example.yp_playlist_maker.settings.view_model.SettingsViewModel
 import org.koin.android.ext.android.inject
 
-class SettingsFragment: Fragment() {
+class SettingsFragment : Fragment() {
     private var _binding: FragmentSettingsBinding? = null
     private val binding: FragmentSettingsBinding
         get() = _binding!!
@@ -22,7 +22,7 @@ class SettingsFragment: Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentSettingsBinding.inflate(layoutInflater)
         return binding.root
     }
@@ -45,8 +45,11 @@ class SettingsFragment: Fragment() {
 
         binding.textViewUserAgreement.setOnClickListener {
             //viewModel.openTerms()
-            val direction = SettingsFragmentDirections.actionSettingsFragmentToWebFragment(getString(
-                R.string.uri_user_agreement))
+            val direction = SettingsFragmentDirections.actionSettingsFragmentToWebFragment(
+                getString(
+                    R.string.uri_user_agreement
+                )
+            )
 
             findNavController().navigate(direction)
         }

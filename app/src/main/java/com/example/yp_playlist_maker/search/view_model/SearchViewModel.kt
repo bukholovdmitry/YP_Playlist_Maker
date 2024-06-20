@@ -14,7 +14,7 @@ import com.example.yp_playlist_maker.utils.debounce
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 
-class SearchViewModel: ViewModel() {
+class SearchViewModel : ViewModel() {
     companion object {
         const val SEARCH_DEBOUNCE_DELAY_MILLIS = 2000L
         const val CLICK_DEBOUNCE_DELAY_MILLIS = 500L
@@ -25,13 +25,14 @@ class SearchViewModel: ViewModel() {
     private val tracksInteractor: TracksInteractor by inject(TracksInteractor::class.java)
     private val tracksHistoryInteractor: TracksHistoryInteractor by inject(TracksHistoryInteractor::class.java)
     private var lastSearchQuery = ""
-    private val stateLiveData: MutableLiveData<SearchState> by inject(MutableLiveData::class.java)
+    private val stateLiveData = MutableLiveData<SearchState>()
 
     fun observeState(): LiveData<SearchState> = stateLiveData
 
-    private val trackSearchDebounce = debounce<String>(SEARCH_DEBOUNCE_DELAY_MILLIS, viewModelScope, true){
-        searchTracks(it)
-    }
+    private val trackSearchDebounce =
+        debounce<String>(SEARCH_DEBOUNCE_DELAY_MILLIS, viewModelScope, true) {
+            searchTracks(it)
+        }
 
     fun searchDebounce(changeText: String) {
         trackSearchDebounce(changeText)
@@ -45,35 +46,33 @@ class SearchViewModel: ViewModel() {
             tracksInteractor
                 .searchTracks(expression = textTrack)
                 .collect { pair ->
-                    if(pair.second?.isNotEmpty() == true){
-                        renderState(SearchState.Error{ searchTracks(lastSearchQuery) })
-                    }
-                    else if (pair.first?.isNullOrEmpty() == false) {
-                        renderState(SearchState.Content(pair.first!!))
-                    }
-                    else {
+                    if (pair.second?.isEmpty() == true) {
+                        renderState(SearchState.Error { searchTracks(lastSearchQuery) })
+                    } else if (!pair.first.isNullOrEmpty()) {
+                        renderState(SearchState.Content(pair.first ?: arrayListOf()))
+                    } else {
                         renderState(SearchState.Empty)
                     }
                 }
         }
     }
 
-    val onTrackClickDebounce = debounce<Track>(CLICK_DEBOUNCE_DELAY_MILLIS, viewModelScope, false){
+    val onTrackClickDebounce = debounce<Track>(CLICK_DEBOUNCE_DELAY_MILLIS, viewModelScope, false) {
         tracksHistoryInteractor.write(it)
-        if (stateLiveData.value is SearchState.History){
+        if (stateLiveData.value is SearchState.History) {
             showTracksHistory()
         }
     }
 
-    fun showTracksHistory(){
+    fun showTracksHistory() {
         stateLiveData.postValue(SearchState.History(tracksHistoryInteractor.read().reversed()))
     }
 
-    fun clearTracksHistory(){
+    fun clearTracksHistory() {
         tracksHistoryInteractor.clearSavedTracks()
     }
 
-    private fun renderState(searchState: SearchState){
+    private fun renderState(searchState: SearchState) {
         stateLiveData.postValue(searchState)
     }
 

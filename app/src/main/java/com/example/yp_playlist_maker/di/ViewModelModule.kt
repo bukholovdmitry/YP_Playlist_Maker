@@ -2,6 +2,7 @@ package com.example.yp_playlist_maker.di
 
 import com.example.yp_playlist_maker.media.viewmodel.FavoriteTracksViewModel
 import com.example.yp_playlist_maker.media.viewmodel.PlaylistCreateViewModel
+import com.example.yp_playlist_maker.media.viewmodel.PlaylistInfoViewModel
 import com.example.yp_playlist_maker.media.viewmodel.PlaylistsViewModel
 import com.example.yp_playlist_maker.player.ui.view_model.AudioPlayerViewModel
 import com.example.yp_playlist_maker.search.view_model.SearchViewModel
@@ -10,7 +11,7 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val viewModelModule = module {
-    viewModel<SearchViewModel>{
+    viewModel<SearchViewModel> {
         SearchViewModel()
     }
 
@@ -19,18 +20,22 @@ val viewModelModule = module {
     }
 
     viewModel<AudioPlayerViewModel> {
-        AudioPlayerViewModel(get(), get(), get(), get(), get())
+        AudioPlayerViewModel(get(), get(), get(), get())
     }
 
-    viewModel<PlaylistsViewModel>{
+    viewModel<PlaylistsViewModel> {
         PlaylistsViewModel(get())
     }
 
-    viewModel<FavoriteTracksViewModel>{
+    viewModel<FavoriteTracksViewModel> {
         FavoriteTracksViewModel(get())
     }
 
-    viewModel<PlaylistCreateViewModel>{
+    viewModel<PlaylistCreateViewModel> {
         PlaylistCreateViewModel(get())
+    }
+
+    viewModel<PlaylistInfoViewModel> {
+        PlaylistInfoViewModel(get(), get(), get())
     }
 }

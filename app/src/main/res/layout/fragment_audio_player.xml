@@ -19,7 +19,6 @@
             android:id="@+id/button_back_from_audio_player"
             android:drawableStart="@drawable/arrow_back"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -184,11 +183,11 @@
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
         <View
-            android:layout_width="50dp"
-            android:layout_height="4dp"
-            android:background="@color/Shadow_color"
+            android:layout_width="@dimen/bottom_bar_width"
+            android:layout_height="@dimen/bottom_bar_height"
+            android:background="@drawable/bottom_sheet_bar"
             android:id="@+id/view_bottom_sheet"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/bottom_bar_margin_top"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"/>

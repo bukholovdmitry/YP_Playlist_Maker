@@ -1,37 +1,40 @@
 package com.example.yp_playlist_maker.media.viewmodel
 
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Environment
-import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.yp_playlist_maker.media.domain.db.Playlist
 import com.example.yp_playlist_maker.media.domain.db.PlaylistRepository
 import kotlinx.coroutines.launch
-import org.koin.java.KoinJavaComponent
-import java.io.File
-import java.io.FileOutputStream
-import java.sql.Timestamp
 
 
-class PlaylistCreateViewModel(private val playlistRepository: PlaylistRepository): ViewModel() {
-    private val context: Context by KoinJavaComponent.inject(Context::class.java)
-    lateinit var savedInstancePlaylist: Playlist
+class PlaylistCreateViewModel(private val playlistRepository: PlaylistRepository) : ViewModel() {
+    private lateinit var savedInstancePlaylist: Playlist
+    private var playlistIdFromArgument: Int = 0
     private var pathToSave = ""
+    private var isCreatingMode = true
 
 
-    fun createPlaylist(playlist: Playlist){
-        if(playlist.pathImage.isNotBlank()){
-            saveImageToPrivateStorage(Uri.parse(playlist.pathImage))
+    private val statePlaylistLiveData = MutableLiveData<Playlist>()
+
+    fun observeState(): LiveData<Playlist> = statePlaylistLiveData
+
+    private fun renderState(playlist: Playlist) {
+        statePlaylistLiveData.postValue(playlist)
+    }
+
+    fun createPlaylist(playlist: Playlist) {
+        if (playlist.pathImage.isNotBlank()) {
+            pathToSave = playlistRepository.saveImageToPrivateStorage(Uri.parse(playlist.pathImage))
         }
         val playlistToSave = Playlist(
             0,
             playlist.playlistName,
             playlist.playlistDescription,
-            pathToSave
+            pathToSave,
+            0
         )
 
         viewModelScope.launch {
@@ -39,28 +42,45 @@ class PlaylistCreateViewModel(private val playlistRepository: PlaylistRepository
         }
     }
 
-    private fun saveImageToPrivateStorage(uri: Uri){
-        val filePath = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), uri.toString().split("/").last())
-        if (!filePath.exists()){
-            filePath.mkdirs()
+    fun savePlaylistInstanceState(
+        playistName: String,
+        playlistDescription: String,
+        newPath: String
+    ) {
+        savedInstancePlaylist =
+            Playlist(playlistIdFromArgument, playistName, playlistDescription, newPath, 0)
+    }
+
+    fun loadFromSavedInstanceState() {
+        renderState(savedInstancePlaylist)
+    }
+
+    fun loadFromArgument(playlist: Playlist) {
+        playlistIdFromArgument = playlist.playlistId
+        pathToSave = playlist.pathImage
+        isCreatingMode = false
+
+        renderState(playlist)
+    }
+
+    fun updatePlaylist(playlistName: String, playlistDescription: String, newPath: String) {
+        viewModelScope.launch {
+            if (newPath != pathToSave) {
+                playlistRepository.deleteImageFromPrivateStorage(pathToSave)
+                pathToSave = playlistRepository.saveImageToPrivateStorage(Uri.parse(newPath))
+            }
+
+            playlistRepository.updatePlaylist(
+                Playlist(
+                    playlistIdFromArgument,
+                    playlistName,
+                    playlistDescription,
+                    pathToSave,
+                    0
+                )
+            )
         }
-
-        val file = File(filePath, uri.toString().split("/").last()+Timestamp(System.currentTimeMillis()))
-        val inputStream = context?.contentResolver?.openInputStream(uri)
-        val outputStream = FileOutputStream(file)
-        Log.d("saveImageToPrivateStorage", "SaveImage from $uri to ${file.absolutePath}")
-        BitmapFactory
-            .decodeStream(inputStream)
-            .compress(Bitmap.CompressFormat.JPEG, 30, outputStream)
-
-        pathToSave = file.absolutePath
     }
 
-    fun savePlaylistInstanceState(playlist: Playlist){
-        savedInstancePlaylist = playlist
-    }
-
-    fun getPlaylistFromSavedInstanceState(): Playlist{
-        return savedInstancePlaylist
-    }
+    fun currentMode() = isCreatingMode
 }

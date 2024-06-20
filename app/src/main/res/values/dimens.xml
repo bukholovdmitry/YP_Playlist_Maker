@@ -83,4 +83,19 @@
     <dimen name="tab_media_margin_horizontal">16dp</dimen>
     <dimen name="tab_media_activity_font_size">16sp</dimen>
 
+    <dimen name="playlist_info_playlist_name_text_size">24sp</dimen>
+    <dimen name="playlist_info_playlist_info_text_size">18sp</dimen>
+    <dimen name="playlist_info_playlist_menu_text_size">18sp</dimen>
+    <dimen name="playlist_info_margin_start">16dp</dimen>
+    <dimen name="playlist_info_margin_vertical">8dp</dimen>
+    <dimen name="playlist_info_menu_margin_vertical">20dp</dimen>
+    <dimen name="playlist_info_menu_margin_bottom">236dp</dimen>
+    <dimen name="playlist_info_bottom_sheet_height">24dp</dimen>
+    <dimen name="playlist_info_menu_button_icon_size">24dp</dimen>
+    <dimen name="playlist_info_name_margin_top">24dp</dimen>
+
+    <dimen name="bottom_bar_round_corners">2dp</dimen>
+    <dimen name="bottom_bar_height">4dp</dimen>
+    <dimen name="bottom_bar_width">50dp</dimen>
+    <dimen name="bottom_bar_margin_top">8dp</dimen>
 </resources>

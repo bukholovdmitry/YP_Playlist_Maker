@@ -16,14 +16,17 @@ class WebFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentWebBinding.inflate(layoutInflater)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.webView.loadUrl(requireArguments().getString(URI_LINK)!!)
+        val uriLink = requireArguments().getString(URI_LINK)
+        if (uriLink != null) {
+            binding.webView.loadUrl(uriLink)
+        }
 
         binding.buttonBackAgreement.setOnClickListener {
             findNavController().popBackStack()
